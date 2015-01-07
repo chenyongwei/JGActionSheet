@@ -47,18 +47,46 @@
 #define iPad (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
 #endif
 
-#define kHostsCornerRadius 3.0f
+#ifndef IS_IPHONE
+#define IS_IPHONE (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+#endif
 
-#define kSpacing 5.0f
+#ifndef IS_OS_8_OR_LATER
+#define IS_OS_8_OR_LATER    ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0)
+#endif
 
-#define kArrowBaseWidth 20.0f
-#define kArrowHeight 10.0f
+#ifndef IS_STANDARD_IPHONE_6
+#define IS_STANDARD_IPHONE_6 (IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 667.0  && IS_OS_8_OR_LATER && [UIScreen mainScreen].nativeScale == [UIScreen mainScreen].scale)
+#endif
 
-#define kShadowRadius 4.0f
+#ifndef IS_ZOOMED_IPHONE_6
+#define IS_ZOOMED_IPHONE_6 (IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 568.0 && IS_OS_8_OR_LATER && [UIScreen mainScreen].nativeScale > [UIScreen mainScreen].scale)
+#endif
+
+#ifndef IS_STANDARD_IPHONE_6_PLUS
+#define IS_STANDARD_IPHONE_6_PLUS (IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 736.0)
+#endif
+
+#ifndef IS_ZOOMED_IPHONE_6_PLUS
+#define IS_ZOOMED_IPHONE_6_PLUS (IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 667.0 && IS_OS_8_OR_LATER && [UIScreen mainScreen].nativeScale < [UIScreen mainScreen].scale)
+#endif
+
+#ifndef FixPixel
+#define FixPixel(pixel) [JGActionSheetUtil fixPixel:pixel]
+#endif
+
+#define kHostsCornerRadius FixPixel(3.0f)
+
+#define kSpacing FixPixel(5.0f)
+
+#define kArrowBaseWidth FixPixel(20.0f)
+#define kArrowHeight FixPixel(10.0f)
+
+#define kShadowRadius FixPixel(4.0f)
 #define kShadowOpacity 0.2f
 
-#define kFixedWidth 320.0f
-#define kFixedWidthContinuous 300.0f
+#define kFixedWidth FixPixel(320.0f)
+#define kFixedWidthContinuous FixPixel(300.0f)
 
 #define kAnimationDurationForSectionCount(count) MAX(0.22f, MIN(count*0.12f, 0.45f))
 
@@ -73,6 +101,7 @@
 @implementation JGButton
 
 @end
+
 
 NS_INLINE UIBezierPath *trianglePath(CGRect rect, JGActionSheetArrowDirection arrowDirection, BOOL closePath) {
     UIBezierPath *path = [UIBezierPath bezierPath];
@@ -216,7 +245,7 @@ static BOOL disableCustomEasing = NO;
             UILabel *titleLabel = [[UILabel alloc] init];
             titleLabel.backgroundColor = [UIColor clearColor];
             titleLabel.textAlignment = NSTextAlignmentCenter;
-            titleLabel.font = [UIFont boldSystemFontOfSize:14.0f];
+            titleLabel.font = [UIFont boldSystemFontOfSize:FixPixel(14.0f)];
             titleLabel.textColor = [UIColor blackColor];
             titleLabel.numberOfLines = 1;
             
@@ -231,7 +260,7 @@ static BOOL disableCustomEasing = NO;
             UILabel *messageLabel = [[UILabel alloc] init];
             messageLabel.backgroundColor = [UIColor clearColor];
             messageLabel.textAlignment = NSTextAlignmentCenter;
-            messageLabel.font = [UIFont systemFontOfSize:12.0f];
+            messageLabel.font = [UIFont systemFontOfSize:FixPixel(12.0f)];
             messageLabel.textColor = [UIColor blackColor];
             messageLabel.numberOfLines = 0;
             
@@ -248,8 +277,8 @@ static BOOL disableCustomEasing = NO;
             NSInteger index = 0;
             
             for (NSString *str in buttonTitles) {
-                JGButton *b = [self makeButtonWithTitle:str style:buttonStyle];
-                b.row = (NSUInteger)index;
+                UIButton *b = [self makeButtonWithTitle:str style:buttonStyle];
+                b.tag = index;
                 
                 [self addSubview:b];
                 
@@ -277,7 +306,7 @@ static BOOL disableCustomEasing = NO;
             UILabel *titleLabel = [[UILabel alloc] init];
             titleLabel.backgroundColor = [UIColor clearColor];
             titleLabel.textAlignment = NSTextAlignmentCenter;
-            titleLabel.font = [UIFont boldSystemFontOfSize:14.0f];
+            titleLabel.font = [UIFont boldSystemFontOfSize:FixPixel(14.0f)];
             titleLabel.textColor = [UIColor blackColor];
             titleLabel.numberOfLines = 1;
             
@@ -292,7 +321,7 @@ static BOOL disableCustomEasing = NO;
             UILabel *messageLabel = [[UILabel alloc] init];
             messageLabel.backgroundColor = [UIColor clearColor];
             messageLabel.textAlignment = NSTextAlignmentCenter;
-            messageLabel.font = [UIFont systemFontOfSize:12.0f];
+            messageLabel.font = [UIFont systemFontOfSize:FixPixel(12.0f)];
             messageLabel.textColor = [UIColor blackColor];
             messageLabel.numberOfLines = 0;
             
@@ -406,8 +435,8 @@ static BOOL disableCustomEasing = NO;
     button.layer.borderColor = borderColor.CGColor;
 }
 
-- (JGButton *)makeButtonWithTitle:(NSString *)title style:(JGActionSheetButtonStyle)style {
-    JGButton *b = [[JGButton alloc] init];
+- (UIButton *)makeButtonWithTitle:(NSString *)title style:(JGActionSheetButtonStyle)style {
+    UIButton *b = [UIButton buttonWithType:UIButtonTypeCustom];
     
     b.layer.cornerRadius = 2.0f;
     b.layer.masksToBounds = YES;
@@ -422,14 +451,14 @@ static BOOL disableCustomEasing = NO;
     return b;
 }
 
-- (void)buttonPressed:(JGButton *)button {
+- (void)buttonPressed:(UIButton *)button {
     if (self.buttonPressedBlock) {
-        self.buttonPressedBlock([NSIndexPath indexPathForRow:(NSInteger)button.row inSection:(NSInteger)self.index]);
+        self.buttonPressedBlock([NSIndexPath indexPathForRow:button.tag inSection:self.tag]);
     }
 }
 
 - (CGRect)layoutForWidth:(CGFloat)width {
-    CGFloat buttonHeight = 40.0f;
+    CGFloat buttonHeight = FixPixel(40.0f);
     CGFloat spacing = kSpacing;
     
     CGFloat height = 0.0f;
@@ -555,7 +584,7 @@ static BOOL disableCustomEasing = NO;
         };
         
         for (JGActionSheetSection *section in self.sections) {
-            section.index = index;
+            section.tag = index;
             
             [_scrollView addSubview:section];
             
@@ -746,7 +775,7 @@ static BOOL disableCustomEasing = NO;
         }
     };
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:UIApplicationDidChangeStatusBarFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:UIDeviceOrientationDidChangeNotification object:nil];
     
     [self layoutForVisible:!animated];
     
@@ -815,7 +844,7 @@ static BOOL disableCustomEasing = NO;
         }
     };
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:UIApplicationDidChangeStatusBarFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:UIDeviceOrientationDidChangeNotification object:nil];
     
     [self layoutForVisible:!animated];
     
@@ -1034,6 +1063,23 @@ static BOOL disableCustomEasing = NO;
 
 - (BOOL)isVisible {
     return (_targetView != nil);
+}
+
+@end
+
+@implementation JGActionSheetUtil
+
++(double)fixPixel:(double)pixel
+{
+    if (IS_STANDARD_IPHONE_6 || IS_ZOOMED_IPHONE_6_PLUS) {
+        return (pixel)*1.172;
+    }
+    else if (IS_STANDARD_IPHONE_6_PLUS) {
+        return (pixel)* 1.294;
+    }
+    else {
+        return (pixel)*1;
+    }
 }
 
 @end

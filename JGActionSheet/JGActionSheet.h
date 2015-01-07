@@ -249,3 +249,10 @@ typedef NS_ENUM(NSUInteger, JGActionSheetArrowDirection) {
 - (void)dismissAnimated:(BOOL)animated;
 
 @end
+
+@interface JGActionSheetUtil : NSObject
+
++(double)fixPixel:(double)pixel;
+
+@end
+
